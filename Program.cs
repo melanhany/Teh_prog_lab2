@@ -34,6 +34,10 @@ namespace ЛАБ2
                 {
                     return Name;
                 }
+                set
+                {
+                    Name = value;
+                }
 
             }
 
@@ -43,6 +47,10 @@ namespace ЛАБ2
                 {
                     return LastName;
                 }
+                set
+                {
+                    LastName = value;
+                }
 
             }
 
@@ -51,6 +59,10 @@ namespace ЛАБ2
                 get
                 {
                     return BDate;
+                }
+                set
+                {
+                    BDate = value;
                 }
 
             }
@@ -120,7 +132,7 @@ namespace ЛАБ2
             }
 
             /////////
-            public static bool operator == (Person lpers, Person rpers)
+            public static bool operator ==(Person lpers, Person rpers)
             {
                 if (ReferenceEquals(lpers, rpers))
                 {
@@ -156,7 +168,7 @@ namespace ЛАБ2
 
         }
 
-        
+
 
         class Test
         {
@@ -173,7 +185,7 @@ namespace ЛАБ2
 
             public override string ToString()
             {
-                return "Название предмета: " + SubjectName + "Статус сдачи: " + Status;
+                return "Название предмета: " + SubjectName + " " + "Статус сдачи: " + Status;
             }
         }
 
@@ -200,7 +212,7 @@ namespace ЛАБ2
             // перегруженную(override) версию виртуального метода string ToString() для формирования строки со значениями всех свойств класса.
             public override string ToString()
             {
-                return "Название предмета:" + Discipline + " " + "Оценка:" + Rate + " " + "Дата экз.:" + DateOfExam;
+                return "Название предмета: " + Discipline + " " + "Оценка: " + Rate + " " + "Дата экз.: " + DateOfExam;
             }
 
             public object DeepCopy()
@@ -225,7 +237,8 @@ namespace ЛАБ2
         class Student : Person, IDateAndCopy //ReasearchTeam
         {
             private Person person;
-            private Education education;
+            //private Education education;
+            public Education education;
             private int group;
             ////systemcollections 
             private System.Collections.ArrayList TestList = new ArrayList();
@@ -262,9 +275,9 @@ namespace ЛАБ2
                 get { return group; }
                 set
                 {
-                    if (value <= 100 && value > 599)
+                    if (value <= 100 || value > 599)
                     {//дополнить из лекции
-                        throw new ArgumentOutOfRangeException("Registration number must be more than 0 ");
+                        throw new ArgumentOutOfRangeException("Group number must be between 100 and 600 ");
                     }
                     else
                     {
@@ -306,6 +319,12 @@ namespace ЛАБ2
             {
                 this.ExamList.AddRange(exams);
             }
+
+            public void AddTests(params Test[] tests)
+            {
+                this.TestList.AddRange(tests);
+            }
+
             //перегруженную версию виртуального метода string ToString() для формирования строки со значениями всех полей класса, включая список экзаменов;
             public override string ToString()
             {
@@ -323,12 +342,40 @@ namespace ЛАБ2
                 CopyStudent.ListOfTests = ListOfTests;
                 CopyStudent.ListOfExams = ListOfExams;
                 return CopyStudent;
-                
+
             }
-            
-            
+
+            public Person getPersonType
+            {
+                get
+                {
+                    return new Person(StdName, StdLastName, StdBDate);
+                }
+                set
+                {
+                    this.StdName = value.StdName;
+                    this.StdLastName = value.StdLastName;
+                    this.StdBDate = value.StdBDate;
+                }
+            }
+
+            public IEnumerable<Test> ListOfTestsPerebor()
+            {
+                for (int i = 0; i < ExamList.Count; i++)
+                {    
+                    yield return (Test)TestList[i];
+                }
+            }
 
             public IEnumerable<Exam> ListOfExamsPerebor()
+            {
+                for (int i = 0; i < ExamList.Count; i++)
+                {
+                    yield return (Exam)ExamList[i];
+                }
+            }
+
+            public IEnumerable<Exam> ListOfExamsPereborUslovie()
             {
                 for (int i = 0; i < ExamList.Count; i++)
                 {
@@ -338,6 +385,7 @@ namespace ЛАБ2
                     }
                 }
             }
+
             /*DateTime IDateAndCopy.Date
             {
                 get
@@ -349,8 +397,8 @@ namespace ЛАБ2
 
                 }
             }*/
-            }
         }
+
 
         interface IDateAndCopy
         {
@@ -363,21 +411,44 @@ namespace ЛАБ2
 
         private static void Main(string[] args)
         {
+            //1.	Создать два объекта типа Person с совпадающими данными 
+            Person Person1 = new Person("Bruce", "Wayne", new DateTime(1990, 4, 5));
+            Person Person2 = new Person("Bruce", "Wayne", new DateTime(1990, 4, 5));
+            Console.WriteLine(Person1.Equals(Person2));
+            Console.WriteLine(Person1 == Person2);
+            Console.WriteLine(string.Format("Person1 hashcode: {0}, Person2 hashcode: {1} ", Person1.GetHashCode(), Person2.GetHashCode()));
+
+            //2.    Создать объект типа Student, добавить элементы в список экзаменов и зачетов, вывести данные объекта Student
             Student std = new Student(); //Создать один объект типа Student,
-            Console.WriteLine(std.ToShortString()); //преобразовать данные в текстовый вид с помощью метода ToShortString() и вывести данные
-                                                    //Присвоить значения всем определенным в типе Student свойствам, преобразовать данные в текстовый вид с помощью метода ToString() и вывести данные.
+
             std = new Student(new Person("Ivan", "Ivanov", new DateTime(1990, 4, 5)), Education.Bachelor, 3);
-            Console.WriteLine(std.ToString());
-            // Вывести значения индексатора для значений индекса Education.Specialist, Education.Bachelor и Education.SecondEducation.
-            Console.WriteLine(std[Education.Bachelor]);
-            Console.WriteLine(std[Education.Specialist]);
-            Console.WriteLine(std[Education.SecondEducation]);
+
             // C помощью метода AddExams(params Exam*+ ) добавить элементы в список экзаменов и вывести данные объекта Student, используя метод ToString().
             std.AddExams(new Exam("Math", 4, new DateTime(2019, 1, 23)), new Exam("C#", 5, new DateTime(2019, 1, 25)));
+            std.AddTests(new Test("Math", true), new Test("C#", false));
 
             Console.WriteLine(std.ToString());
-            Console.WriteLine(std.ToShortString());
-            Console.WriteLine("Сравнить время выполнения операций с элементами одномерного, двумерного прямоугольного и двумерного ступенчатого массивов с одинаковым числом элементов типа Exam.");
+
+            foreach (Exam ex in std.ListOfExamsPerebor())
+            {
+                Console.WriteLine(ex);
+            }
+
+            foreach (Test ts in std.ListOfTestsPerebor())
+            {
+                Console.WriteLine(ts);
+            }
+
+            //3.	Вывести значение свойства типа Person для объекта типа Student.
+            Console.WriteLine(std.getPersonType.ToString());
+
+            //4.	С помощью метода DeepCopy() создать полную копию объекта Student
+            Student stdCopy = (Student)std.DeepCopy();
+            std.education = Education.Specialist;
+            std.Group = 150;
+
+            Console.WriteLine(stdCopy);
+            Console.WriteLine(std);
 
             /*
             Exam[] odnomer = new Exam[10];
